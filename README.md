@@ -1,6 +1,6 @@
 # 🩸 AI Anemia Predictor
 
-[![Streamlit App](https://img.shields.io/badge/Live%20App-Open-green?logo=streamlit)](https://ai-anaemia-prediction-dfink5dz6npyk9dj6vnvf5.streamlit.app/)
+[![Streamlit App](https://img.shields.io/badge/Live%20App-Open-green?logo=streamlit)](https://ai-anaemia-predictor-dfink5dz6npyk9dj6vnvf5.streamlit.app/)
 
 This is an AI-powered web app that predicts whether a person is anemic based on simple health metrics. Built using `Streamlit`, `Scikit-learn`, and `Python`, the tool provides fast, accessible screening support — especially for low-resource healthcare settings.
 
@@ -17,7 +17,7 @@ This is an AI-powered web app that predicts whether a person is anemic based on 
 
 ## 🚀 Try It Live
 
-👉 [Click here to open the app](https://ai-anaemia-prediction-dfink5dz6npyk9dj6vnvf5.streamlit.app/)
+👉 [Click here to open the app](https://ai-anaemia-predictor-dfink5dz6npyk9dj6vnvf5.streamlit.app/)
 
 ---
 
