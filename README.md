@@ -17,7 +17,7 @@ This is an AI-powered web app that predicts whether a person is anemic based on 
 
 ## 🚀 Try It Live
 
-👉 [Click here to open the app](https://ai-anaemia-prediction-dfink5dz6npyk9dj6vnvf5.streamlit.app/)
+👉 [Click here to open the app](https://ai-anaemia-predictorgit-ruonqsoyappz7kujkqrckhh.streamlit.app/)
 
 ---
 
