@@ -38,6 +38,7 @@ anemia-predictor/
 ├── anemia_model.pkl      # Trained ML model
 ├── requirements.txt      # Dependencies
 └── README.md             # Project documentation
+| file_.csv               # dataset
 
 
 
