@@ -9,67 +9,7 @@ from geopy.geocoders import Nominatim
 MODEL_PATH = 'anemia_model.pkl'
 
 # --- Theme Switcher ---
-theme = st.sidebar.radio('Theme', ['Light', 'Dark'], index=0)
-background_url = 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1500&q=80'  # Unsplash doctors team
-if theme == 'Dark':
-    st.markdown(
-        f"""
-        <style>
-        body {{
-            background: linear-gradient(120deg, #232526 0%, #414345 100%) !important;
-            color: #fff !important;
-        }}
-        .main-title {{color:#FF6F61;}}
-        .footer {{color:#aaa;}}
-        .user-summary {{background:#2d2d2d; color:#fff;}}
-        .health-tips {{background:#1e2b1e; color:#fff;}}
-        .map-card {{background:rgba(30, 43, 30, 0.7); border-radius:12px; padding:1.5em; margin-top:1em; margin-bottom:1em;}}
-        .stApp {{
-            background: linear-gradient(120deg, #232526 0%, #414345 100%) !important;
-        }}
-        .bgimg::before {{
-            content: "";
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            z-index: -1;
-            background: url('{background_url}') no-repeat center center fixed;
-            background-size: cover;
-            opacity: 0.18;
-        }}
-        </style>
-        <div class="bgimg"></div>
-        """,
-        unsafe_allow_html=True
-    )
-else:
-    st.markdown(
-        f"""
-        <style>
-        body {{
-            background: linear-gradient(120deg, #f8fafc 0%, #ffe5ec 100%) !important;
-        }}
-        .main-title {{color:#B22222;}}
-        .footer {{color:gray;}}
-        .user-summary {{background:#fffbe7;}}
-        .health-tips {{background:#e6ffed;}}
-        .map-card {{background:rgba(226, 245, 255, 0.7); border-radius:12px; padding:1.5em; margin-top:1em; margin-bottom:1em;}}
-        .stApp {{
-            background: linear-gradient(120deg, #f8fafc 0%, #ffe5ec 100%) !important;
-        }}
-        .bgimg::before {{
-            content: "";
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            z-index: -1;
-            background: url('{background_url}') no-repeat center center fixed;
-            background-size: cover;
-            opacity: 0.18;
-        }}
-        </style>
-        <div class="bgimg"></div>
-        """,
-        unsafe_allow_html=True
-    )
+# (CSS and theme switcher removed as requested)
 
 # --- Welcome Message ---
 st.balloons()
@@ -92,9 +32,22 @@ Enter the patient details in the main panel to predict anaemia status.
 st.markdown('<div class="main-title">🩺 Anaemia Prediction</div>', unsafe_allow_html=True)
 st.subheader('Predict if a patient is anaemic based on blood image features and hemoglobin')
 
-uploaded_image = st.file_uploader('Upload a health-related image (optional)', type=['png', 'jpg', 'jpeg'])
+uploaded_image = st.file_uploader('Upload a blood sample image (only blood-based images accepted)', type=['png', 'jpg', 'jpeg'])
+image_is_blood = False
 if uploaded_image:
-    st.image(uploaded_image, caption='Your Uploaded Image', use_container_width=True)
+    from PIL import Image
+    import numpy as np
+    image = Image.open(uploaded_image)
+    arr = np.array(image)
+    if arr.ndim == 3 and arr.shape[2] >= 3:
+        red_ratio = np.mean(arr[:,:,0]) / (np.mean(arr[:,:,1]) + np.mean(arr[:,:,2]) + 1e-5)
+        if red_ratio > 1.2:  # Threshold can be adjusted for strictness
+            image_is_blood = True
+            st.image(uploaded_image, caption='Your Uploaded Image', use_container_width=True)
+        else:
+            st.error("Please upload a valid blood sample image (image does not appear to be blood-based).")
+    else:
+        st.error("Invalid image format. Please upload a color image of a blood sample.")
 else:
     st.image('https://cdn.pixabay.com/photo/2017/01/31/13/14/anemia-2028244_1280.png', caption='Healthy Blood Cells', use_container_width=True)
 
@@ -102,13 +55,26 @@ else:
 col1, col2 = st.columns(2)
 
 with col1:
+    st.markdown('<div class="input-block">', unsafe_allow_html=True)
     sex = st.selectbox('Sex', ['M', 'F'], help='Select M for Male, F for Female')
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="input-block">', unsafe_allow_html=True)
     red_pixel = st.number_input('%Red Pixel', min_value=0.0, max_value=100.0, value=45.0, help='Percentage of red pixels in image')
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="input-block">', unsafe_allow_html=True)
     hb = st.number_input('Hemoglobin (Hb)', min_value=0.0, max_value=25.0, value=10.0, help='Hemoglobin level (g/dL)')
+    st.markdown('</div>', unsafe_allow_html=True)
 
 with col2:
+    st.markdown('<div class="input-block">', unsafe_allow_html=True)
     green_pixel = st.number_input('%Green pixel', min_value=0.0, max_value=100.0, value=30.0, help='Percentage of green pixels in image')
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="input-block">', unsafe_allow_html=True)
     blue_pixel = st.number_input('%Blue pixel', min_value=0.0, max_value=100.0, value=25.0, help='Percentage of blue pixels in image')
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --- Location Input ---
 st.markdown('---')
@@ -118,22 +84,31 @@ latitude = longitude = None
 location_text = ''
 
 if location_mode == 'County/Subcounty':
-    county = st.text_input('Enter County (e.g., Kitui)')
-    subcounty = st.text_input('Enter Subcounty/Town/Area (optional)')
-    country = st.text_input('Enter Country', value='Kenya')
-    # Build the location string
-    location_parts = [part for part in [subcounty, county, country] if part.strip()]
-    location_text = ', '.join(location_parts)
-    if location_text:
-        geolocator = Nominatim(user_agent="anemia_app")
-        try:
-            location = geolocator.geocode(location_text, timeout=10)
-            if location:
-                latitude, longitude = location.latitude, location.longitude
-            else:
-                st.warning('Could not find the location. Please check your input or try entering latitude/longitude manually.')
-        except Exception as e:
-            st.warning('Geocoding service is currently unavailable. Please try again later or enter latitude/longitude manually.')
+    with st.form("location_form"):
+        county = st.text_input('Enter County (e.g., Kitui)')
+        subcounty = st.text_input('Enter Subcounty/Town/Area (optional)')
+        country = st.text_input('Enter Country', value='Kenya')
+        location_parts = [part for part in [subcounty, county, country] if part.strip()]
+        location_text = ', '.join(location_parts)
+        find_location = st.form_submit_button("Find Location")
+        if find_location and location_text:
+            geolocator = Nominatim(user_agent="your_email_or_app_name_here")
+            try:
+                location = geolocator.geocode(location_text, timeout=10)
+                if location:
+                    latitude, longitude = location.latitude, location.longitude
+                    st.success(f"Found location: {location_text} ({latitude}, {longitude})")
+                    # Display map immediately after successful lookup
+                    st.markdown('<div class="map-card">', unsafe_allow_html=True)
+                    st.markdown('#### 🗺️ Patient Location Map')
+                    st.markdown('<span style="color:#1e88e5;">This map shows the location you entered for the patient. You can use this to visualize where the prediction was made.</span>', unsafe_allow_html=True)
+                    map_df = pd.DataFrame({'lat': [latitude], 'lon': [longitude]})
+                    st.map(map_df)
+                    st.markdown('</div>', unsafe_allow_html=True)
+                else:
+                    st.warning('Could not find the location. Please check your input or try entering latitude/longitude manually.')
+            except Exception as e:
+                st.warning('Geocoding service is currently unavailable. Please try again later or enter latitude/longitude manually.')
 else:
     latitude = st.number_input('Latitude', min_value=-90.0, max_value=90.0, value=0.0)
     longitude = st.number_input('Longitude', min_value=-180.0, max_value=180.0, value=0.0)
@@ -154,7 +129,10 @@ input_data = pd.DataFrame({
 st.markdown('<div class="user-summary"><b>📝 Your Input Summary:</b><br>'
             f'Sex: <b>{sex}</b> | %Red Pixel: <b>{red_pixel}</b> | %Green pixel: <b>{green_pixel}</b> | %Blue pixel: <b>{blue_pixel}</b> | Hb: <b>{hb}</b></div>', unsafe_allow_html=True)
 if latitude is not None and longitude is not None:
-    st.markdown(f'<b>Location:</b> {location_text if location_mode=="Country/City" else f"({latitude}, {longitude})"}', unsafe_allow_html=True)
+    if location_text:
+        st.markdown(f'<b>Location:</b> {location_text} <br><b>Coordinates:</b> ({latitude}, {longitude})', unsafe_allow_html=True)
+    else:
+        st.markdown(f'<b>Coordinates:</b> ({latitude}, {longitude})', unsafe_allow_html=True)
 
 # --- Predict Button ---
 predict_btn = st.button('🔍 Predict Anaemia', use_container_width=True)
@@ -216,7 +194,6 @@ if predict_btn:
         report.write(f'\n{learn_more}\n')
         st.download_button('⬇️ Download Report', data=report.getvalue(), file_name='anaemia_report.txt', mime='text/plain')
         # --- Map Visualization ---
-     # --- Map Visualization ---
         if latitude is not None and longitude is not None:
             st.markdown('<div class="map-card">', unsafe_allow_html=True)
             st.markdown('#### 🗺️ Patient Location Map')
