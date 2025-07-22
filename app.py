@@ -216,7 +216,8 @@ if predict_btn:
         report.write(f'\n{learn_more}\n')
         st.download_button('⬇️ Download Report', data=report.getvalue(), file_name='anaemia_report.txt', mime='text/plain')
         # --- Map Visualization ---
-      if latitude is not None and longitude is not None:
+     # --- Map Visualization ---
+        if latitude is not None and longitude is not None:
             st.markdown('<div class="map-card">', unsafe_allow_html=True)
             st.markdown('#### 🗺️ Patient Location Map')
             st.markdown('<span style="color:#1e88e5;">This map shows the location you entered for the patient. You can use this to visualize where the prediction was made.</span>', unsafe_allow_html=True)
