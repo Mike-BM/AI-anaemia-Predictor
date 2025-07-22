@@ -113,21 +113,27 @@ with col2:
 # --- Location Input ---
 st.markdown('---')
 st.markdown('### 📍 Patient Location')
-location_mode = st.radio('How would you like to enter your location?', ['Country/City', 'Latitude/Longitude'])
+location_mode = st.radio('How would you like to enter your location?', ['County/Subcounty', 'Latitude/Longitude'])
 latitude = longitude = None
 location_text = ''
-if location_mode == 'Country/City':
-    location_text = st.text_input('Enter Country and/or City (e.g., Nairobi, Kenya)')
+
+if location_mode == 'County/Subcounty':
+    county = st.text_input('Enter County (e.g., Kitui)')
+    subcounty = st.text_input('Enter Subcounty/Town/Area (optional)')
+    country = st.text_input('Enter Country', value='Kenya')
+    # Build the location string
+    location_parts = [part for part in [subcounty, county, country] if part.strip()]
+    location_text = ', '.join(location_parts)
     if location_text:
         geolocator = Nominatim(user_agent="anemia_app")
         try:
-            location = geolocator.geocode(location_text)
+            location = geolocator.geocode(location_text, timeout=10)
             if location:
                 latitude, longitude = location.latitude, location.longitude
             else:
-                st.warning('Could not find the location. Please check your input.')
+                st.warning('Could not find the location. Please check your input or try entering latitude/longitude manually.')
         except Exception as e:
-            st.warning(f'Geocoding error: {e}')
+            st.warning('Geocoding service is currently unavailable. Please try again later or enter latitude/longitude manually.')
 else:
     latitude = st.number_input('Latitude', min_value=-90.0, max_value=90.0, value=0.0)
     longitude = st.number_input('Longitude', min_value=-180.0, max_value=180.0, value=0.0)
@@ -210,7 +216,7 @@ if predict_btn:
         report.write(f'\n{learn_more}\n')
         st.download_button('⬇️ Download Report', data=report.getvalue(), file_name='anaemia_report.txt', mime='text/plain')
         # --- Map Visualization ---
-        if latitude is not None and longitude is not None:
+      if latitude is not None and longitude is not None:
             st.markdown('<div class="map-card">', unsafe_allow_html=True)
             st.markdown('#### 🗺️ Patient Location Map')
             st.markdown('<span style="color:#1e88e5;">This map shows the location you entered for the patient. You can use this to visualize where the prediction was made.</span>', unsafe_allow_html=True)
@@ -219,4 +225,4 @@ if predict_btn:
             st.markdown('</div>', unsafe_allow_html=True)
 
 # --- Footer ---
-st.markdown('<div class="footer">Made with by Brian Michael | Powered by Streamlit</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">@2025 All rights reserved</div>', unsafe_allow_html=True)
