@@ -5,7 +5,7 @@ from joblib import load
 import os
 import io
 from geopy.geocoders import Nominatim
-
+os.environ["STREAMLIT_SERVER_FILE_WATCHER_TYPE"] = "none"
 MODEL_PATH = 'anemia_model.pkl'
 
 # --- Theme Switcher ---
