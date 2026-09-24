@@ -12,7 +12,6 @@ MODEL_PATH = 'anemia_model.pkl'
 # (CSS and theme switcher removed as requested)
 
 # --- Welcome Message ---
-st.balloons()
 st.info('**Welcome to the Anaemia Prediction App!**\n\nThis tool helps you predict anaemia status using blood image features and hemoglobin. Enter the details below and get instant results!')
 
 # --- Sidebar ---
