@@ -13,10 +13,10 @@ MODEL_PATH = 'anemia_model.pkl'
 
 # --- Welcome Message ---
 st.balloons()
-st.info('👋 **Welcome to the Anaemia Prediction App!**\n\nThis tool helps you predict anaemia status using blood image features and hemoglobin. Enter the details below and get instant results!', icon="💡")
+st.info('**Welcome to the Anaemia Prediction App!**\n\nThis tool helps you predict anaemia status using blood image features and hemoglobin. Enter the details below and get instant results!')
 
 # --- Sidebar ---
-st.sidebar.title('🩸 Anaemia Prediction App')
+st.sidebar.title('Anaemia Prediction App')
 st.sidebar.info('''
 Enter the patient details in the main panel to predict anaemia status. 
 
@@ -29,7 +29,7 @@ Enter the patient details in the main panel to predict anaemia status.
 ''')
 
 # --- Image Upload ---
-st.markdown('<div class="main-title">🩺 Anaemia Prediction</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title">Anaemia Prediction</div>', unsafe_allow_html=True)
 st.subheader('Predict if a patient is anaemic based on blood image features and hemoglobin')
 
 uploaded_image = st.file_uploader('Upload a blood sample image (only blood-based images accepted)', type=['png', 'jpg', 'jpeg'])
@@ -78,7 +78,7 @@ with col2:
 
 # --- Location Input ---
 st.markdown('---')
-st.markdown('### 📍 Patient Location')
+st.markdown('### Patient Location')
 location_mode = st.radio('How would you like to enter your location?', ['County/Subcounty', 'Latitude/Longitude'])
 latitude = longitude = None
 location_text = ''
@@ -92,7 +92,7 @@ if location_mode == 'County/Subcounty':
         location_text = ', '.join(location_parts)
         find_location = st.form_submit_button("Find Location")
         if find_location and location_text:
-            geolocator = Nominatim(user_agent="your_email_or_app_name_here")
+            geolocator = Nominatim(user_agent="anaemia_predictor_v1")
             try:
                 location = geolocator.geocode(location_text, timeout=10)
                 if location:
@@ -100,7 +100,7 @@ if location_mode == 'County/Subcounty':
                     st.success(f"Found location: {location_text} ({latitude}, {longitude})")
                     # Display map immediately after successful lookup
                     st.markdown('<div class="map-card">', unsafe_allow_html=True)
-                    st.markdown('#### 🗺️ Patient Location Map')
+                    st.markdown('#### Patient Location Map')
                     st.markdown('<span style="color:#1e88e5;">This map shows the location you entered for the patient. You can use this to visualize where the prediction was made.</span>', unsafe_allow_html=True)
                     map_df = pd.DataFrame({'lat': [latitude], 'lon': [longitude]})
                     st.map(map_df)
@@ -126,7 +126,7 @@ input_data = pd.DataFrame({
 })
 
 # --- Data Summary Display ---
-st.markdown('<div class="user-summary"><b>📝 Your Input Summary:</b><br>'
+st.markdown('<div class="user-summary"><b>Your Input Summary:</b><br>'
             f'Sex: <b>{sex}</b> | %Red Pixel: <b>{red_pixel}</b> | %Green pixel: <b>{green_pixel}</b> | %Blue pixel: <b>{blue_pixel}</b> | Hb: <b>{hb}</b></div>', unsafe_allow_html=True)
 if latitude is not None and longitude is not None:
     if location_text:
@@ -135,12 +135,17 @@ if latitude is not None and longitude is not None:
         st.markdown(f'<b>Coordinates:</b> ({latitude}, {longitude})', unsafe_allow_html=True)
 
 # --- Predict Button ---
-predict_btn = st.button('🔍 Predict Anaemia', use_container_width=True)
+predict_btn = st.button('Predict Anaemia', use_container_width=True)
 
 # --- Progress Bar/Loader ---
+@st.cache_resource
+def load_model():
+    return load(MODEL_PATH)
+
+clf = load_model()
+
 if predict_btn:
     with st.spinner('Predicting...'):
-        clf = load(MODEL_PATH)  # reload in case theme switcher changed state
         prediction = clf.predict(input_data)[0]
         confidence = None
         if hasattr(clf, 'predict_proba'):
@@ -165,17 +170,17 @@ if predict_btn:
             learn_more = '[General health tips (Mayo Clinic)](https://www.mayoclinic.org/healthy-lifestyle)'
         # --- Feedback ---
         if prediction == 1:
-            st.markdown('<span style="font-size:1.5em; color:#B22222;">🩸 <b>Prediction: Anaemic</b></span>', unsafe_allow_html=True)
+            st.markdown('<span style="font-size:1.5em; color:#B22222;"><b>Prediction: Anaemic</b></span>', unsafe_allow_html=True)
             if confidence is not None:
                 st.markdown(f'<span style="color:#B22222;">Confidence: <b>{confidence*100:.1f}%</b></span>', unsafe_allow_html=True)
             st.markdown('''<span style="color:#B22222;font-size:1.2em;">The patient is likely <b>Anaemic</b>. Please consult a healthcare professional for further advice.</span>''', unsafe_allow_html=True)
         else:
-            st.markdown('<span style="font-size:1.5em; color:#228B22;">🟢 <b>Prediction: Not Anaemic</b></span>', unsafe_allow_html=True)
+            st.markdown('<span style="font-size:1.5em; color:#228B22;"><b>Prediction: Not Anaemic</b></span>', unsafe_allow_html=True)
             if confidence is not None:
                 st.markdown(f'<span style="color:#228B22;">Confidence: <b>{confidence*100:.1f}%</b></span>', unsafe_allow_html=True)
             st.markdown('''<span style="color:#228B22;font-size:1.2em;">The patient is likely <b>Not Anaemic</b>. Keep up the healthy habits!</span>''', unsafe_allow_html=True)
         # --- Health Tips Section ---
-        st.markdown('<div class="health-tips"><b>💡 Personalized Health Tips:</b><ul>' + ''.join([f'<li>{tip}</li>' for tip in tips]) + f'</ul>{learn_more}</div>', unsafe_allow_html=True)
+        st.markdown('<div class="health-tips"><b>Personalized Health Tips:</b><ul>' + ''.join([f'<li>{tip}</li>' for tip in tips]) + f'</ul>{learn_more}</div>', unsafe_allow_html=True)
         # --- Downloadable Report ---
         report = io.StringIO()
         report.write('Anaemia Prediction Report\n')
@@ -192,7 +197,7 @@ if predict_btn:
         for tip in tips:
             report.write(f'- {tip}\n')
         report.write(f'\n{learn_more}\n')
-        st.download_button('⬇️ Download Report', data=report.getvalue(), file_name='anaemia_report.txt', mime='text/plain')
+        st.download_button('Download Report', data=report.getvalue(), file_name='anaemia_report.txt', mime='text/plain')
         # --- Map Visualization ---
         if latitude is not None and longitude is not None:
             st.markdown('<div class="map-card">', unsafe_allow_html=True)

@@ -6,7 +6,7 @@ from joblib import dump
 import os
 
 # Constants
-DATA_PATH = 'C:/Users/Brian Muema/Desktop/Data/data/file_.csv'
+DATA_PATH = 'file_.csv'
 MODEL_PATH = 'anemia_model.pkl'
 
 # 1. Load dataset
